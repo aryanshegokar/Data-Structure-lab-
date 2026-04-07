@@ -1,56 +1,66 @@
 #include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-bool isValid(char * s) {
-    int len = strlen(s);
-    
-    // Quick optimization: an odd-length string can never be perfectly balanced.
-    if (len % 2 != 0) {
-        return false;
-    }
+#define MAX 1000000
 
-    // Dynamically allocate memory for our stack based on string length
-    char* stack = (char*)malloc(len * sizeof(char));
-    if (stack == NULL) {
-        return false; // Memory allocation failed
-    }
-    
-    int top = -1; // -1 indicates an empty stack
+// Stack implementation
+char stack[MAX];
+int top = -1;
 
-    for (int i = 0; i < len; i++) {
-        char current = s[i];
+void push(char c) {
+    stack[++top] = c;
+}
 
-        // If it's an opening bracket, push to stack
-        if (current == '(' || current == '{' || current == '[') {
-            stack[++top] = current;
-        } 
-        // If it's a closing bracket
-        else {
-            // If the stack is empty, there's no matching opening bracket
-            if (top == -1) {
-                free(stack);
-                return false;
-            }
+char pop() {
+    if (top == -1) return '\0';
+    return stack[top--];
+}
 
-            char topElement = stack[top--]; // Pop the top element
+bool isEmpty() {
+    return top == -1;
+}
 
-            // Check if the closing bracket matches the last opened bracket
-            if ((current == ')' && topElement != '(') ||
-                (current == '}' && topElement != '{') ||
-                (current == ']' && topElement != '[')) {
-                free(stack);
-                return false;
-            }
+// Check if brackets are matching
+bool isMatch(char open, char close) {
+    return (open == '(' && close == ')') ||
+           (open == '{' && close == '}') ||
+           (open == '[' && close == ']');
+}
+
+// Main balance check function
+bool isBalanced(char* s) {
+    top = -1; // reset stack
+
+    for (int i = 0; s[i] != '\0'; i++) {
+        char ch = s[i];
+
+        // If opening bracket, push onto stack
+        if (ch == '(' || ch == '{' || ch == '[') {
+            push(ch);
+        }
+        // If closing bracket
+        else if (ch == ')' || ch == '}' || ch == ']') {
+            // Stack empty means no matching opening bracket
+            if (isEmpty()) return false;
+
+            char top_char = pop();
+            if (!isMatch(top_char, ch)) return false;
         }
     }
 
-    // If the stack is completely empty at the end, everything matched perfectly.
-    bool result = (top == -1);
-    
-    // Clean up memory before returning
-    free(stack);
-    
-    return result;
+    // Stack must be empty for balanced expression
+    return isEmpty();
+}
+
+int main() {
+    char* tests[] = {"[{()}]", "[()(){}", "([)", "[{()})"};
+    int n = 4;
+
+    for (int i = 0; i < n; i++) {
+        printf("Input:  \"%s\"\n", tests[i]);
+        printf("Output: %s\n\n", isBalanced(tests[i]) ? "true" : "false");
+    }
+
+    return 0;
 }
