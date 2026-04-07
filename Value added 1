@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Definition for a binary tree node.
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// Helper function to traverse and collect valid nodes
+void findInRange(struct TreeNode* root, int low, int high, int** result, int* capacity, int* returnSize) {
+    if (root == NULL) {
+        return;
+    }
+
+    // If current value is greater than low, valid numbers could be on the left
+    if (root->val > low) {
+        findInRange(root->left, low, high, result, capacity, returnSize);
+    }
+
+    // If current value is within the range, add it to our results
+    if (root->val >= low && root->val <= high) {
+        // If we hit our memory capacity, double the size of the array
+        if (*returnSize >= *capacity) {
+            *capacity *= 2;
+            *result = (int*)realloc(*result, (*capacity) * sizeof(int));
+        }
+        // Add the value and increment our count
+        (*result)[(*returnSize)++] = root->val;
+    }
+
+    // If current value is less than high, valid numbers could be on the right
+    if (root->val < high) {
+        findInRange(root->right, low, high, result, capacity, returnSize);
+    }
+}
+
+// Main function to be called
+int* bstRangeSum(struct TreeNode* root, int low, int high, int* returnSize) {
+    *returnSize = 0;
+    if (root == NULL) {
+        return NULL;
+    }
+
+    // Start with a reasonable initial capacity to minimize realloc calls
+    int capacity = 100; 
+    int* result = (int*)malloc(capacity * sizeof(int));
+
+    // Pass the addresses so our helper can modify the array and its size trackers
+    findInRange(root, low, high, &result, &capacity, returnSize);
+
+    return result;
+}
